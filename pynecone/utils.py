@@ -50,6 +50,7 @@ if TYPE_CHECKING:
     from pynecone.config import Config
     from pynecone.event import Event, EventHandler, EventSpec
     from pynecone.var import Var
+    from pynecone.model import Model
 
 # Shorthand for join.
 join = os.linesep.join
@@ -714,6 +715,11 @@ def change_or_terminate_port(port, _type) -> str:
         sys.exit()
 
 
+def setup_backend():
+    config = get_config()
+    if config.db_url is not None:
+            Model.create_all()
+
 def run_backend(
     app_name: str, port: int, loglevel: constants.LogLevel = constants.LogLevel.ERROR
 ):
@@ -724,6 +730,8 @@ def run_backend(
         port: The app port
         loglevel: The log level.
     """
+    setup_backend()
+
     uvicorn.run(
         f"{app_name}:{constants.APP_VAR}.{constants.API_VAR}",
         host=constants.BACKEND_HOST,
@@ -743,6 +751,8 @@ def run_backend_prod(
         port: The app port
         loglevel: The log level.
     """
+    setup_backend()
+
     num_workers = get_num_workers()
     command = constants.RUN_BACKEND_PROD + [
         "--bind",
